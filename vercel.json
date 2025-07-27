@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/webhook",
+      "dest": "/api/webhook.js",
+      "methods": ["POST"]
+    }
+  ]
+}
