@@ -1,9 +1,9 @@
-// api/scheduled-duty.js
+// ไฟล์: /api/scheduled-duty.js
 
 import { Client } from '@line/bot-sdk';
 import { differenceInCalendarDays, addDays } from 'date-fns';
 
-// — LINE SDK client setup (same as in webhook.js) —
+// — LINE SDK client setup —
 const config = {
   channelAccessToken: process.env.LINE_TOKEN,
   channelSecret: process.env.LINE_SECRET,
@@ -15,11 +15,10 @@ const thaiMonths = [
   'มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
   'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'
 ];
-// Reference date for rotation (1 ส.ค.2568)
-const referenceDate = new Date(2025, 7, 1);
+const referenceDate = new Date(2025, 7, 1);  // 1 ส.ค.2568
 const rotation      = [3, 1, 2];
 
-// Team officers data
+// ข้อมูลทีมสืบสวน
 const teamOfficers = {
   1: [
     { rank:'ร.ต.อ.', name:'สายัณห์ มาปะโท',    title:'รอง สว.สส.ฯ',    code:'ปค.412', phone:'062-3271588' },
@@ -44,7 +43,6 @@ function fmtThai(dt) {
   return `${dt.getDate()} ${thaiMonths[dt.getMonth()]} ${dt.getFullYear() + 543}`;
 }
 
-// Build the “duty” message for a given date
 async function makeDutyMessageForDate(date) {
   const idx  = ((differenceInCalendarDays(date, referenceDate) % 3) + 3) % 3;
   const team = rotation[idx];
@@ -77,27 +75,37 @@ async function makeDutyMessageForDate(date) {
   return { type: 'text', text: lines.join('\n') };
 }
 
-// Handler for the Vercel Scheduled Function
 export default async function handler(req, res) {
-  // 1) Log trigger time
+  // 1) Log trigger
   const now = new Date().toISOString();
   console.log(`[Scheduled] Trigger at ${now}`);
 
+  // 2) ใส่ Group IDs จริงที่ได้จาก Logs
+  const groupIds = [
+    'C32d917c1534d7e9585ac61f9639954d2', // Exclusive ปากคลอง
+    'C04233de8ae6cdb71cbd581778bacf4f4'  // สืบสวนปากคลอง
+  ];
+
+  if (groupIds.length === 0) {
+    console.error('[Scheduled] No group IDs – skipping');
+    return res.status(200).json({ ok: true, skipped: true });
+  }
+
   try {
-    const today   = new Date();   // UTC time
+    const today   = new Date();
     const dutyMsg = await makeDutyMessageForDate(today);
 
-    // 2) Log selected team
+    // 3) Log selected team
     const teamLine = dutyMsg.text.match(/● ชุดปฏิบัติการ สืบสวนที่ \d/)[0];
     console.log(`[Scheduled] ${teamLine}`);
 
-    await client.broadcast([ dutyMsg ]);
+    // 4) ส่งข้อความไปยังกลุ่มที่ระบุ
+    await client.multicast(groupIds, [ dutyMsg ]);
 
-    // 3) Confirm success
-    console.log('[Scheduled] Broadcast success');
+    // 5) ยืนยันสำเร็จ
+    console.log('[Scheduled] Multicast success to groups:', groupIds);
     return res.status(200).json({ ok: true });
   } catch (err) {
-    // 4) Error handling log
     console.error('[Scheduled] Error sending duty message:', err);
     return res.status(500).json({ error: 'failed' });
   }
