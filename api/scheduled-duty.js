@@ -20,9 +20,22 @@ const rotation      = [3, 1, 2];
 
 // ข้อมูลทีมสืบสวน
 const teamOfficers = {
-  1: [ /* ข้อมูลชุดที่ 1 */ ],
-  2: [ /* ข้อมูลชุดที่ 2 */ ],
-  3: [ /* ข้อมูลชุดที่ 3 */ ],
+  1: [
+    { rank:'ร.ต.อ.', name:'สายัณห์ มาปะโท',    title:'รอง สว.สส.ฯ',    code:'ปค.412',  phone:'062-3271588' },
+    { rank:'ร.ต.ท.', name:'ฉัตรชัย คร่ำกระโทก', title:'รอง สว.สสฯ',     code:'ปค.416',  phone:'081-9224175' },
+    { rank:'ส.ต.ท.', name:'อัศนัย เรืองสาย',     title:'รอง ผบ.หมู่ สสฯ', code:'ปค.4116', phone:'099-1719842' },
+  ],
+  2: [
+    { rank:'ร.ต.อ.', name:'จำเริญ ทิสมบูรณ์',   title:'รอง สว.สสฯ',    code:'ปค.411',  phone:'094-9692994' },
+    { rank:'ร.ต.ท.', name:'สมคิด บัวมาศ',       title:'รอง สว.สสฯ',    code:'ปค.415',  phone:'083-1997055' },
+    { rank:'จ.ส.ต.', name:'กฤษ บัติพิมาย',      title:'ผบ.หมู่ ป.ฯ',   code:'ปค.4112', phone:'098-6824652' },
+    { rank:'ส.ต.อ.', name:'ชยันธร แยบกระโทก',   title:'ผบ.หมู่ ป.ฯ',   code:'ปค.4114', phone:'098-2845413' },
+  ],
+  3: [
+    { rank:'ร.ต.อ.', name:'เกียรติศักดิ์ คำกุล',  title:'รอง สว.สส.ฯ',   code:'ปค.413',  phone:'095-8165176' },
+    { rank:'ส.ต.ท.', name:'ธีระ โฉมไธสง',        title:'ผบ.หมู่ ป.ฯ',   code:'ปค.4115', phone:'064-2066256' },
+    { rank:'ส.ต.ท.', name:'ปภาวินทร์ ทิพย์ธรทอง', title:'ผบ.หมู่ ป.ฯ',   code:'ปค.4116', phone:'061-9296899' },
+  ]
 };
 
 // ฟอร์แมตวันที่เป็นไทย
@@ -68,7 +81,7 @@ export default async function handler(req, res) {
   const now = new Date().toISOString();
   console.log(`[Scheduled] Trigger at ${now}`);
 
-  // 2) Group IDs
+  // 2) Group IDs ที่ได้จาก Logs
   const groupIds = [
     'C32d917c1534d7e9585ac61f9639954d2', // Exclusive ปากคลอง
     'C04233de8ae6cdb71cbd581778bacf4f4'  // สืบสวนปากคลอง
@@ -80,17 +93,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 3) Generate duty message
+    // 3) Generate message
     const today   = new Date();
     const dutyMsg = await makeDutyMessageForDate(today);
 
-    // 4) Log selected team for debugging
+    // 4) Log selected team
     const match = dutyMsg.text.match(/● ชุดปฏิบัติการ สืบสวนที่ \d/);
     if (match) console.log(`[Scheduled] ${match[0]}`);
 
-    // 5) Send to groups
-    await client.multicast(groupIds, [ dutyMsg ]);
-    console.log('[Scheduled] Multicast success to groups:', groupIds);
+    // 5) ส่งข้อความผ่าน pushMessage ทีละกลุ่ม
+    await Promise.all(
+      groupIds.map(id => client.pushMessage(id, dutyMsg))
+    );
+    console.log('[Scheduled] PushMessage success to groups:', groupIds);
+
     return res.status(200).json({ ok: true });
   } catch (err) {
     // 6) Error handling with stack trace
