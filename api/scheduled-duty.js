@@ -10,7 +10,7 @@ const config = {
 };
 const client = new Client(config);
 
-// — Thai month names and duty rotation data — 
+// — Thai month names and duty rotation data —
 const thaiMonths = [
   'มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
   'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'
@@ -79,13 +79,26 @@ async function makeDutyMessageForDate(date) {
 
 // Handler for the Vercel Scheduled Function
 export default async function handler(req, res) {
+  // 1) Log trigger time
+  const now = new Date().toISOString();
+  console.log(`[Scheduled] Trigger at ${now}`);
+
   try {
-    const today   = new Date();
+    const today   = new Date();   // UTC time
     const dutyMsg = await makeDutyMessageForDate(today);
+
+    // 2) Log selected team
+    const teamLine = dutyMsg.text.match(/● ชุดปฏิบัติการ สืบสวนที่ \d/)[0];
+    console.log(`[Scheduled] ${teamLine}`);
+
     await client.broadcast([ dutyMsg ]);
+
+    // 3) Confirm success
+    console.log('[Scheduled] Broadcast success');
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error('Failed to send scheduled duty message:', err);
+    // 4) Error handling log
+    console.error('[Scheduled] Error sending duty message:', err);
     return res.status(500).json({ error: 'failed' });
   }
 }
