@@ -1,0 +1,13 @@
+# Ignore environment
+.env
+
+# Ignore node modules and lockfiles
+node_modules/
+package-lock.json
+package.json
+
+# Ignore Vercel local folder
+.vercel/
+
+# Ignore temp/text files
+*.txt
