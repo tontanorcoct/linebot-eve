@@ -1,10 +1,26 @@
 {
   "version": 2,
+  "crons": [
+    {
+      "path": "/api/scheduled-duty",
+      "schedule": "0 1 * * *"
+    }
+  ],
   "routes": [
     {
-      "src": "/webhook",
+      "src": "/api/test-sheet",
+      "dest": "/api/webhook.js#testSheet",
+      "methods": ["GET"]
+    },
+    {
+      "src": "/api/webhook",
       "dest": "/api/webhook.js",
       "methods": ["POST"]
+    },
+    {
+      "src": "/api/scheduled-duty",
+      "dest": "/api/scheduled-duty.js",
+      "methods": ["GET", "POST"]
     }
   ]
 }
