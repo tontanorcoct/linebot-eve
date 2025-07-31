@@ -1,0 +1,14 @@
+name: Daily Duty Trigger
+
+# รันตาม UTC เวลา 01:00 = 08:00 Bangkok
+on:
+  schedule:
+    - cron: '0 1 * * *'
+
+jobs:
+  ping-scheduled-duty:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Scheduled Duty
+        run: |
+          curl -fsS https://linebot-5cgoiuo0p-tontanorcocts-projects.vercel.app/api/scheduled-duty || exit 1
