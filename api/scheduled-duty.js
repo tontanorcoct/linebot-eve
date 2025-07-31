@@ -81,13 +81,13 @@ export default async function handler(req, res) {
   const now = new Date().toISOString();
   console.log(`[Scheduled] Trigger at ${now}`);
 
-  // 2) Group IDs (ได้จาก Vercel logs)
+  // 2) Group IDs ที่ได้จาก Logs
   const groupIds = [
     'C32d917c1534d7e9585ac61f9639954d2', // Exclusive ปากคลอง
     'C04233de8ae6cdb71cbd581778bacf4f4'  // สืบสวนปากคลอง
   ];
 
-  if (!groupIds.length) {
+  if (groupIds.length === 0) {
     console.error('[Scheduled] No group IDs – skipping send');
     return res.status(200).json({ ok: true, skipped: true });
   }
@@ -97,26 +97,26 @@ export default async function handler(req, res) {
     const today   = new Date();
     const dutyMsg = await makeDutyMessageForDate(today);
 
-    // 4) Log selected team for debugging
+    // 4) Log selected team
     const match = dutyMsg.text.match(/● ชุดปฏิบัติการ สืบสวนที่ \d/);
     if (match) console.log(`[Scheduled] ${match[0]}`);
 
-    // 5) ส่งข้อความผ่าน pushMessage ทีละกลุ่ม
-    await Promise.all(
-      groupIds.map(id => client.pushMessage(id, dutyMsg))
-    );
-    console.log('[Scheduled] PushMessage success to groups:', groupIds);
+    // 5) ส่งข้อความผ่าน pushMessage ทีละกลุ่ม พร้อมหน่วงเวลา 5 วินาที
+    for (const gid of groupIds) {
+      try {
+        await client.pushMessage(gid, dutyMsg);
+        console.log(`[Scheduled] PushMessage success to group ${gid}`);
+      } catch (err) {
+        const body = err.originalError?.response?.data || err.message;
+        console.error(`[Scheduled] Error pushing to ${gid}:`, body);
+      }
+      // หน่วงเวลา 5 วินาที ก่อนส่งกลุ่มถัดไป
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
 
     return res.status(200).json({ ok: true });
   } catch (err) {
-    // 6) Detailed error logging from LINE API
-    if (err.originalError
-        && err.originalError.response
-        && err.originalError.response.data) {
-      console.error('[Scheduled] LINE API error body:', JSON.stringify(err.originalError.response.data));
-    } else {
-      console.error('[Scheduled] Unexpected error:', err);
-    }
+    console.error('[Scheduled] Unexpected error:', err);
     return res.status(500).json({ error: 'failed' });
   }
 }
