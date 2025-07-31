@@ -1,16 +1,13 @@
- {
-   "version": 2,
--  "crons": [
--    { "path": "/api/scheduled-duty", "schedule": "0 1 * * *" }
--  ],
-+  "crons": [
-+    { "path": "/api/keep-warm",      "schedule": "*/5 * * * *" },  // ping ทุก 5 นาที
-+    { "path": "/api/scheduled-duty", "schedule": "0 1 * * *" }     // 01:00 UTC = 08:00 ICT
-+  ],
-   "routes": [
-+    { "src": "/api/keep-warm",      "dest": "/api/keep-warm.js" },
-     { "src": "/api/test-sheet",     "dest": "/api/webhook.js#testSheet", "methods": ["GET"] },
-     { "src": "/api/webhook",        "dest": "/api/webhook.js",           "methods": ["POST"] },
-     { "src": "/api/scheduled-duty", "dest": "/api/scheduled-duty.js",    "methods": ["GET","POST"] }
-   ]
- }
+{
+  "version": 2,
+  "crons": [
+    { "path": "/api/keep-warm",      "schedule": "*/5 * * * *" },
+    { "path": "/api/scheduled-duty", "schedule": "0 1 * * *" }
+  ],
+  "routes": [
+    { "src": "/api/keep-warm",      "dest": "/api/keep-warm.js" },
+    { "src": "/api/test-sheet",     "dest": "/api/webhook.js#testSheet", "methods": ["GET"] },
+    { "src": "/api/webhook",        "dest": "/api/webhook.js",           "methods": ["POST"] },
+    { "src": "/api/scheduled-duty", "dest": "/api/scheduled-duty.js",    "methods": ["GET","POST"] }
+  ]
+}
