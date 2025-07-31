@@ -81,7 +81,7 @@ export default async function handler(req, res) {
   const now = new Date().toISOString();
   console.log(`[Scheduled] Trigger at ${now}`);
 
-  // 2) Group IDs ที่ได้จาก Logs
+  // 2) Group IDs (ได้จาก Vercel logs)
   const groupIds = [
     'C32d917c1534d7e9585ac61f9639954d2', // Exclusive ปากคลอง
     'C04233de8ae6cdb71cbd581778bacf4f4'  // สืบสวนปากคลอง
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
     const today   = new Date();
     const dutyMsg = await makeDutyMessageForDate(today);
 
-    // 4) Log selected team
+    // 4) Log selected team for debugging
     const match = dutyMsg.text.match(/● ชุดปฏิบัติการ สืบสวนที่ \d/);
     if (match) console.log(`[Scheduled] ${match[0]}`);
 
@@ -109,9 +109,14 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ ok: true });
   } catch (err) {
-    // 6) Error handling with stack trace
-    console.error('[Scheduled] Error sending duty message:', err);
-    console.error(err.stack);
+    // 6) Detailed error logging from LINE API
+    if (err.originalError
+        && err.originalError.response
+        && err.originalError.response.data) {
+      console.error('[Scheduled] LINE API error body:', JSON.stringify(err.originalError.response.data));
+    } else {
+      console.error('[Scheduled] Unexpected error:', err);
+    }
     return res.status(500).json({ error: 'failed' });
   }
 }
