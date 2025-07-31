@@ -1,9 +1,9 @@
 name: Daily Duty Trigger
 
-# รันตาม UTC เวลา 01:00 = 08:00 Bangkok
 on:
   schedule:
-    - cron: '0 1 * * *'
+    - cron: '0 1 * * *'      # ทุกวัน 01:00 UTC (08:00 BKK)
+  workflow_dispatch:        # อนุญาตสั่งรันด้วยมือได้
 
 jobs:
   ping-scheduled-duty:
