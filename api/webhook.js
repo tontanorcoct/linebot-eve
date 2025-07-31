@@ -1,10 +1,9 @@
 // api/webhook.js
+import 'dotenv/config';
 import { Client, middleware } from '@line/bot-sdk';
 import { differenceInCalendarDays, addDays } from 'date-fns';
 import { getSheetData } from '../modules/googleSheets.js';
 import OpenAI from 'openai';
-import { extractTextFromImage } from '../modules/googleVision.js';
-import { translateText, formatReport } from '../modules/translator.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -391,28 +390,6 @@ __________________
         text: 'ขอโทษค่ะ หนูยังเรียก AI ไม่ได้ ไว้ลองใหม่อีกครั้งนะคะ'
       };
     }
-  }
-},
-
-{
-  name: 'translateReport',
-  match: (text, ev) => ev.message.type === 'image' && text.includes('แปล'),
-  handler: async (text, ev) => {
-    const stream = await client.getMessageContent(ev.message.id);
-    const chunks = [];
-    for await (const chunk of stream) chunks.push(chunk);
-    const buffer = Buffer.concat(chunks);
-
-    const ocr = await extractTextFromImage(buffer);
-    if (!ocr) return { type:'text', text:'ไม่พบข้อความในภาพ กรุณาลองใหม่' };
-
-    const translated = await translateText(ocr);
-
-    // หาหัวหน้าชุดเวร ช่วงนี้สมมติเป็น teamOfficers[1][0]
-    const lead = teamOfficers[1][0];
-
-    const report = await formatReport(translated, lead);
-    return { type:'text', text: report };
   }
 },
 

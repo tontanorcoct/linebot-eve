@@ -1,10 +1,8 @@
 {
   "version": 2,
-  "crons": [
-    { "path": "/api/scheduled-duty", "schedule": "0 1 * * *" }
-  ],
   "routes": [
-    { "src": "/api/webhook",        "dest": "/api/webhook.js",           "methods": ["POST"] },
-    { "src": "/api/scheduled-duty", "dest": "/api/scheduled-duty.js",    "methods": ["GET","POST"] }
+    { "src": "/api/webhook",        "dest": "/api/webhook.js",        "methods":["GET","POST"] },
+    { "src": "/api/scheduled-duty", "dest": "/api/scheduled-duty.js", "methods":["GET","POST"] },
+    { "src": "/api/keep-warm",      "dest": "/api/keep-warm.js",      "methods":["GET"] }
   ]
 }

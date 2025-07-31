@@ -2,7 +2,6 @@
 .env
 
 # Ignore node modules and lockfiles
-node_modules/
 package-lock.json
 package.json
 
