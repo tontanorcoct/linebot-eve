@@ -78,8 +78,7 @@ async function makeDutyMessageForDate(date) {
 
 export default async function handler(req, res) {
   // 1) Log trigger timestamp
-  const now = new Date().toISOString();
-  console.log(`[Scheduled] Trigger at ${now}`);
+  console.log(`[Scheduled] Trigger at ${new Date().toISOString()}`);
 
   // 2) Group IDs ที่ได้จาก Logs
   const groupIds = [
@@ -94,23 +93,19 @@ export default async function handler(req, res) {
 
   try {
     // 3) Generate message
-    const today   = new Date();
-    const dutyMsg = await makeDutyMessageForDate(today);
+    const dutyMsg = await makeDutyMessageForDate(new Date());
 
-    // 4) Log selected team
-    const match = dutyMsg.text.match(/● ชุดปฏิบัติการ สืบสวนที่ \d/);
-    if (match) console.log(`[Scheduled] ${match[0]}`);
-
-    // 5) ส่งข้อความผ่าน pushMessage ทีละกลุ่ม พร้อมหน่วงเวลา 5 วินาที
+    // 4) ส่งข้อความทีละกลุ่ม พร้อมหน่วงเวลา 5 วินาที
     for (const gid of groupIds) {
       try {
         await client.pushMessage(gid, dutyMsg);
-        console.log(`[Scheduled] PushMessage success to group ${gid}`);
+        console.log(`[Scheduled] ✅ Push to ${gid} succeeded`);
       } catch (err) {
+        // อ่าน body ของ error หากมี
         const body = err.originalError?.response?.data || err.message;
-        console.error(`[Scheduled] Error pushing to ${gid}:`, body);
+        console.error(`[Scheduled] ❌ Push to ${gid} failed:`, body);
       }
-      // หน่วงเวลา 5 วินาที ก่อนส่งกลุ่มถัดไป
+      // ดีเลย์ 5 วิ ก่อน send กลุ่มถัดไป
       await new Promise(resolve => setTimeout(resolve, 5000));
     }
 
