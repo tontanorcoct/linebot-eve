@@ -1,8 +1,10 @@
+# .github/workflows/duty-trigger.yml
+
 name: Daily Duty Trigger
 
 on:
   schedule:
-    - cron: '0 1 * * *'      # ทุกวัน 01:00 UTC (08:00 BKK)
+    - cron: '0 1 * * *'      # ทุกวัน 01:00 UTC (ตรงกับ 08:00 BKK)
   workflow_dispatch:        # อนุญาตสั่งรันด้วยมือได้
 
 jobs:
@@ -11,4 +13,4 @@ jobs:
     steps:
       - name: Trigger Scheduled Duty
         run: |
-          curl -fsS https://linebot-5cgoiuo0p-tontanorcocts-projects.vercel.app/api/scheduled-duty || exit 1
+          curl -fsS https://linebot-eve.vercel.app/api/scheduled-duty || exit 1
